@@ -1,7 +1,19 @@
 import requests
 import json
 import sys
+import argparse
 from bs4 import BeautifulSoup
+
+
+def getArguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--srf", help="srf id of the patient", dest="srf_id", action="store", required=True)
+    args = parser.parse_args()
+    return args
+
+
+args=getArguments()
+srfNo=args.srf_id
 
 #header string picked from chrome
 headerString='''
@@ -51,8 +63,6 @@ headerString='''
 request_header=json.loads(headerString)
 
 url='https://sadarhospital.com/Covid_Report/get_report'
-srfNo="2033900079875"
-srfNo=int(input("Enter the srf number : "))
 payload={"srf_no":srfNo}
 r=s.post(url, headers=request_header, data=payload)
 
