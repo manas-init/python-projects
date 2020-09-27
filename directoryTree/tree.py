@@ -6,7 +6,7 @@ import argparse
 # Python program to print 
 # colored text and background 
 class colors: 
-
+    #to make ansci colour coding work even in windows
     from platform import system
     if "win" in system().lower(): #works for Win7, 8, 10 ...
         from ctypes import windll
@@ -77,19 +77,24 @@ def createDirectoryTree(rootNode, maxDepth=99999):
         if os.path.isdir(os.path.join(rootNode.dirLoc, rootNode.dirName)):
             createDirectoryTree(child, maxDepth - 1)
 
-def printDirectoryTree(rootNode, maxDepth=99999, tabCount=1, onlyDir=False, extensions=None):
+def printDirectoryTree(rootNode, maxDepth=99999, tabCount=1, onlyDir=False, extensions=None, search=None):
     if rootNode == None or maxDepth < 1:
         return None
     str="|    " * (tabCount-1)
     fullPath=os.path.join(rootNode.dirLoc, rootNode.dirName)
     if onlyDir == True or os.path.isdir(fullPath):
         if os.path.isdir(fullPath):
-            print("{}|===={}{}{}".format(str, colors.fg.blue, rootNode.dirName, colors.fg.lightgrey))
+            if rootNode.dirName == search:
+                print("{}|===={}{}{}{}".format(str, colors.fg.orange, colors.bold, rootNode.dirName, colors.fg.lightgrey))
+            else:
+                print("{}|===={}{}{}".format(str, colors.fg.blue, rootNode.dirName, colors.fg.lightgrey))
     else:
         extension=fullPath.split(".", -1)[-1]
         executables=["exe", "sh", "py", "cpp"]
         compressed=["zip", "tar", "gz"]
-        if extensions != None:
+        if rootNode.dirName == search:
+                print("{}|===={}{}{}{}".format(str, colors.fg.orange, colors.bold, rootNode.dirName, colors.fg.lightgrey))
+        elif extensions != None:
             if extension in extensions:
                 print("{}|----{}{}{}".format(str, colors.fg.lightgrey, rootNode.dirName, colors.fg.lightgrey))
         elif extension in executables:
@@ -100,7 +105,7 @@ def printDirectoryTree(rootNode, maxDepth=99999, tabCount=1, onlyDir=False, exte
         else:
             print("{}|----{}{}{}".format(str, colors.fg.lightgrey, rootNode.dirName, colors.fg.lightgrey))
     for child in rootNode.children:
-        printDirectoryTree(child, maxDepth-1, tabCount+1, onlyDir=onlyDir, extensions=extensions)
+        printDirectoryTree(child, maxDepth-1, tabCount+1, onlyDir=onlyDir, extensions=extensions, search=search)
 
 
 #Parse the arguments
@@ -108,10 +113,10 @@ def getArguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--dir", help="Base directory location",dest="path",action="store",required=True)
     parser.add_argument("-m", "--max-depth", help="Maximum depth to go from base directory",dest="maxDepth",action="store", default=5,required=False)
-    parser.add_argument("-i", "--image", help="To take image of output",dest="image",action="store",required=False)
+    parser.add_argument("-i", "--image", help="To take image of output",dest="image", default=False, action="store",required=False)
     parser.add_argument("--only-dir", help="To print only directories in output",dest="onlyDir",action="store", type=strToBool, default=False, required=False)
-    parser.add_argument("-e", "--extensions", help="To print only files with given output",dest="extensions",action="store",required=False)
-    parser.add_argument("-s", "--search", help="To search a given file",dest="search",action="store",required=False)
+    parser.add_argument("-e", "--extensions", help="To print only files with given output",dest="extensions", default=None, nargs="*", action="store",required=False)
+    parser.add_argument("-s", "--search", help="To search a given file",dest="search", default=None, action="store",required=False)
     args = parser.parse_args()
     args.path=os.path.realpath(args.path)
     if not os.path.isdir(args.path):
@@ -120,6 +125,8 @@ def getArguments():
     if args.onlyDir==True and args.extensions!=None:
         print("Please provide either --only-dir true or --extensions")
         sys.exit(1)
+    if args.extensions!=None and len(args.extensions) == 1:
+        args.extensions=args.extensions[0].split(",")
     return args
 
 
@@ -130,6 +137,7 @@ def strToBool(value):
         return True
     raise ValueError(f'{value} is not a valid boolean value')
 
+
 rootDir="D:\\video_lecs_os"
 rootDir='C:'
 args=getArguments()
@@ -137,6 +145,7 @@ rootDir=args.path
 maxDepth=int(args.maxDepth)
 onlyDir=args.onlyDir
 extensions=args.extensions
+search=args.search
 rootNode=Node(rootDir)
 createDirectoryTree(rootNode, maxDepth=maxDepth)
-printDirectoryTree(rootNode, onlyDir=onlyDir, extensions=extensions)
+printDirectoryTree(rootNode, onlyDir=onlyDir, extensions=extensions, search=search)
