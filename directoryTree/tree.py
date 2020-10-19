@@ -2,7 +2,6 @@ import os
 import sys
 import argparse
 
-
 # Python program to print 
 # colored text and background 
 class colors: 
@@ -77,35 +76,41 @@ def createDirectoryTree(rootNode, maxDepth=99999):
         if os.path.isdir(os.path.join(rootNode.dirLoc, rootNode.dirName)):
             createDirectoryTree(child, maxDepth - 1)
 
-def printDirectoryTree(rootNode, maxDepth=99999, tabCount=1, onlyDir=False, extensions=None, search=None):
+def getDirectoryTree(rootNode, maxDepth=99999, tabCount=1, onlyDir=False, extensions=None, search=None, takeImage=False):
     if rootNode == None or maxDepth < 1:
         return None
     str="|    " * (tabCount-1)
     fullPath=os.path.join(rootNode.dirLoc, rootNode.dirName)
+    finalOutput=""
     if onlyDir == True or os.path.isdir(fullPath):
         if os.path.isdir(fullPath):
             if rootNode.dirName == search:
-                print("{}|===={}{}{}{}".format(str, colors.fg.orange, colors.bold, rootNode.dirName, colors.fg.lightgrey))
+                finalOutput+="{}|===={}{}{}{}\n".format(str, colors.fg.orange, colors.bold, rootNode.dirName, colors.fg.lightgrey)
             else:
-                print("{}|===={}{}{}".format(str, colors.fg.blue, rootNode.dirName, colors.fg.lightgrey))
+                finalOutput+="{}|===={}{}{}\n".format(str, colors.fg.blue, rootNode.dirName, colors.fg.lightgrey)
     else:
         extension=fullPath.split(".", -1)[-1]
         executables=["exe", "sh", "py", "cpp"]
         compressed=["zip", "tar", "gz"]
         if rootNode.dirName == search:
-                print("{}|===={}{}{}{}".format(str, colors.fg.orange, colors.bold, rootNode.dirName, colors.fg.lightgrey))
+                finalOutput+="{}|===={}{}{}{}\n".format(str, colors.fg.orange, colors.bold, rootNode.dirName, colors.fg.lightgrey)
+        elif search != None:
+            pass
         elif extensions != None:
             if extension in extensions:
-                print("{}|----{}{}{}".format(str, colors.fg.lightgrey, rootNode.dirName, colors.fg.lightgrey))
+                finalOutput+="{}|----{}{}{}\n".format(str, colors.fg.lightgrey, rootNode.dirName, colors.fg.lightgrey)
         elif extension in executables:
         #if os.access(fullPath, os.X_OK):
-            print("{}|----{}{}{}".format(str, colors.fg.green, rootNode.dirName, colors.fg.lightgrey))
+            finalOutput+="{}|----{}{}{}\n".format(str, colors.fg.green, rootNode.dirName, colors.fg.lightgrey)
         elif extension in compressed:
-            print("{}|----{}{}{}".format(str, colors.fg.red, rootNode.dirName, colors.fg.lightgrey))
+            finalOutput+="{}|----{}{}{}\n".format(str, colors.fg.red, rootNode.dirName, colors.fg.lightgrey)
         else:
-            print("{}|----{}{}{}".format(str, colors.fg.lightgrey, rootNode.dirName, colors.fg.lightgrey))
+            finalOutput+="{}|----{}{}{}\n".format(str, colors.fg.lightgrey, rootNode.dirName, colors.fg.lightgrey)
     for child in rootNode.children:
-        printDirectoryTree(child, maxDepth-1, tabCount+1, onlyDir=onlyDir, extensions=extensions, search=search)
+        output=getDirectoryTree(child, maxDepth-1, tabCount+1, onlyDir=onlyDir, extensions=extensions, search=search)
+        if output != None or output.strip() != "":
+            finalOutput+=(output)
+    return finalOutput
 
 
 #Parse the arguments
@@ -148,4 +153,5 @@ extensions=args.extensions
 search=args.search
 rootNode=Node(rootDir)
 createDirectoryTree(rootNode, maxDepth=maxDepth)
-printDirectoryTree(rootNode, onlyDir=onlyDir, extensions=extensions, search=search)
+outputTree=getDirectoryTree(rootNode, onlyDir=onlyDir, extensions=extensions, search=search)
+print(outputTree)
