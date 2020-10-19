@@ -61,7 +61,7 @@ class Node:
         self.children=[]
 
     def findChildDirectories(self):
-    '''this functioin finds all child directories of current node'''
+        '''this functioin finds all child directories of current node'''
         path=os.path.join(self.dirLoc, self.dirName)
         if not os.path.isdir(path):
             return
