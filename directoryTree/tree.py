@@ -2,7 +2,8 @@ import os
 import sys
 import argparse
 
-# Python program to print 
+
+# Python program\to print 
 # colored text and background 
 class colors: 
     #to make ansci colour coding work even in windows
@@ -47,6 +48,7 @@ class colors:
 
 
 class Node:
+    '''This class represents a directory'''
     def __init__(self, baseDir):
         baseDir=os.path.split(baseDir)
         if len(baseDir) == 1:
@@ -59,6 +61,7 @@ class Node:
         self.children=[]
 
     def findChildDirectories(self):
+    '''this functioin finds all child directories of current node'''
         path=os.path.join(self.dirLoc, self.dirName)
         if not os.path.isdir(path):
             return
@@ -69,6 +72,7 @@ class Node:
 
 
 def createDirectoryTree(rootNode, maxDepth=99999):
+    '''this function creates a tree of directories with first parameter as root of tree and maxDepth is maximum depth given tree can have.'''
     if rootNode == None or maxDepth < 1:
         return None
     rootNode.findChildDirectories()
@@ -77,6 +81,12 @@ def createDirectoryTree(rootNode, maxDepth=99999):
             createDirectoryTree(child, maxDepth - 1)
 
 def getDirectoryTree(rootNode, maxDepth=99999, tabCount=1, onlyDir=False, extensions=None, search=None, takeImage=False):
+    '''this function traverses the directory tree and returns tree in string format.
+It uses follows given colour coding in its output:
+    directory - blue
+    executable - green
+    compressed file - red
+    other file - white'''
     if rootNode == None or maxDepth < 1:
         return None
     str="|    " * (tabCount-1)
@@ -115,6 +125,14 @@ def getDirectoryTree(rootNode, maxDepth=99999, tabCount=1, onlyDir=False, extens
 
 #Parse the arguments
 def getArguments():
+    '''this function parses the arguments passed to script and validates them
+Following parameters affect the output of this function:
+    1) -d", "--dir : this is the base directory from which to print/search sub-directories
+    2) -m or --max-depth :  this parameter tells the maxmimum depth of sub-directories to explore
+    3) -e or --extensions : this parameter makes function to print only files with given extension
+    4) -s or --search : this parameter takes a filename as input and if the given file is found then prints it in orange colour
+    5) --onlyDir : This is a boolean variable which makes it print only directories in tree
+    '''
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--dir", help="Base directory location",dest="path",action="store",required=True)
     parser.add_argument("-m", "--max-depth", help="Maximum depth to go from base directory",dest="maxDepth",action="store", default=5,required=False)
@@ -136,6 +154,7 @@ def getArguments():
 
 
 def strToBool(value):
+    '''this function takes a string and check if the string is string for a binary value'''
     if value.lower() in {'false', 'f', '0', 'no', 'n'}:
         return False
     elif value.lower() in {'true', 't', '1', 'yes', 'y'}:
