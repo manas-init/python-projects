@@ -1,18 +1,20 @@
 import os
 import sys
 import argparse
+from subprocess import check_output
 
 
-# Python program\to print 
-# colored text and background 
-class colors: 
+
+# Python program\to print
+# colored text and background
+class colors:
     #to make ansci colour coding work even in windows
     from platform import system
     if "win" in system().lower(): #works for Win7, 8, 10 ...
         from ctypes import windll
         k=windll.kernel32
         k.SetConsoleMode(k.GetStdHandle(-11),7)
-    
+
     reset='\033[0m'
     bold='\033[01m'
     disable='\033[02m'
@@ -20,7 +22,7 @@ class colors:
     reverse='\033[07m'
     strikethrough='\033[09m'
     invisible='\033[08m'
-    class fg: 
+    class fg:
         black='\033[30m'
         red='\033[31m'
         green='\033[32m'
@@ -36,7 +38,7 @@ class colors:
         lightblue='\033[94m'
         pink='\033[95m'
         lightcyan='\033[96m'
-    class bg: 
+    class bg:
         black='\033[40m'
         red='\033[41m'
         green='\033[42m'
@@ -59,6 +61,7 @@ class Node:
         self.dirName=baseName
         self.dirLoc=baseLoc
         self.children=[]
+        self.size=-1
 
     def findChildDirectories(self):
         '''this functioin finds all child directories of current node'''
@@ -70,6 +73,39 @@ class Node:
             tempNode=Node(os.path.join(path, sub))
             self.children.append(tempNode)
 
+    def setNodeSize(self):
+        '''this function calculates the size of node and its children'''
+        size = 0
+        for child in self.children:
+            fullPath = os.path.join(child.dirLoc, child.dirName)
+            if os.path.isdir(fullPath):
+                child.setNodeSize()
+            else:
+                #get size of file
+                fileStats = os.stat(fullPath)
+                fileSize = fileStats.st_size
+                fileSize = os.path.getsize(fullPath)
+                child.size = fileSize
+        for child in self.children:
+            #print("adding {} : {}\n".format(child.dirName, child.size))
+            size = size + child.size
+        self.size = size
+        return
+
+    def getNodeSizeHumanFormat(self):
+        #return "{}B".format(self.size)
+        if self.size == -1:
+            return None
+        elif int(self.size / ( 1024 * 1024 * 1024 * 1024 )) > 0:
+            return "{:.2f}T".format(self.size / ( 1024 * 1024 * 1024 * 1024 ))
+        elif int(self.size / ( 1024 * 1024 * 1024 )) > 0:
+            return "{:.2f}G".format(self.size / ( 1024 * 1024 * 1024 ))
+        elif int(self.size / ( 1024 * 1024 )) > 0:
+            return "{:.2f}M".format(self.size / ( 1024 * 1024 ))
+        elif int(self.size / ( 1024 )) > 0:
+            return "{:.2f}K".format(self.size / ( 1024 ))
+        else:
+            return "{}B".format(self.size)
 
 def createDirectoryTree(rootNode, maxDepth=99999):
     '''this function creates a tree of directories with first parameter as root of tree and maxDepth is maximum depth given tree can have.'''
@@ -80,7 +116,7 @@ def createDirectoryTree(rootNode, maxDepth=99999):
         if os.path.isdir(os.path.join(rootNode.dirLoc, rootNode.dirName)):
             createDirectoryTree(child, maxDepth - 1)
 
-def getDirectoryTree(rootNode, maxDepth=99999, tabCount=1, onlyDir=False, extensions=None, search=None, takeImage=False):
+def getDirectoryTree(rootNode, maxDepth=99999, tabCount=1, onlyDir=False, extensions=None, search=None, takeImage=False, getSize=False):
     '''this function traverses the directory tree and returns tree in string format.
 It uses follows given colour coding in its output:
     directory - blue
@@ -95,29 +131,29 @@ It uses follows given colour coding in its output:
     if onlyDir == True or os.path.isdir(fullPath):
         if os.path.isdir(fullPath):
             if rootNode.dirName == search:
-                finalOutput+="{}|===={}{}{}{}\n".format(str, colors.fg.orange, colors.bold, rootNode.dirName, colors.fg.lightgrey)
+                finalOutput+="{}|===={}{}{} ({}){}\n".format(str, colors.fg.orange, colors.bold, rootNode.dirName, rootNode.getNodeSizeHumanFormat(), colors.fg.lightgrey)
             else:
-                finalOutput+="{}|===={}{}{}\n".format(str, colors.fg.blue, rootNode.dirName, colors.fg.lightgrey)
+                finalOutput+="{}|===={}{} ({}){}\n".format(str, colors.fg.blue, rootNode.dirName, rootNode.getNodeSizeHumanFormat(), colors.fg.lightgrey)
     else:
         extension=fullPath.split(".", -1)[-1]
         executables=["exe", "sh", "py", "cpp"]
         compressed=["zip", "tar", "gz"]
         if rootNode.dirName == search:
-                finalOutput+="{}|===={}{}{}{}\n".format(str, colors.fg.orange, colors.bold, rootNode.dirName, colors.fg.lightgrey)
+                finalOutput+="{}|===={}{}{} ({}){}\n".format(str, colors.fg.orange, colors.bold, rootNode.dirName, rootNode.getNodeSizeHumanFormat(), colors.fg.lightgrey)
         elif search != None:
             pass
         elif extensions != None:
             if extension in extensions:
-                finalOutput+="{}|----{}{}{}\n".format(str, colors.fg.lightgrey, rootNode.dirName, colors.fg.lightgrey)
+                finalOutput+="{}|----{}{} ({}){}\n".format(str, colors.fg.lightgrey, rootNode.dirName, rootNode.getNodeSizeHumanFormat(), colors.fg.lightgrey)
         elif extension in executables:
         #if os.access(fullPath, os.X_OK):
-            finalOutput+="{}|----{}{}{}\n".format(str, colors.fg.green, rootNode.dirName, colors.fg.lightgrey)
+            finalOutput+="{}|----{}{} ({}){}\n".format(str, colors.fg.green, rootNode.dirName, rootNode.getNodeSizeHumanFormat(), colors.fg.lightgrey)
         elif extension in compressed:
-            finalOutput+="{}|----{}{}{}\n".format(str, colors.fg.red, rootNode.dirName, colors.fg.lightgrey)
+            finalOutput+="{}|----{}{} ({}){}\n".format(str, colors.fg.red, rootNode.dirName, rootNode.getNodeSizeHumanFormat(), colors.fg.lightgrey)
         else:
-            finalOutput+="{}|----{}{}{}\n".format(str, colors.fg.lightgrey, rootNode.dirName, colors.fg.lightgrey)
+            finalOutput+="{}|----{}{} ({}){}\n".format(str, colors.fg.lightgrey, rootNode.dirName, rootNode.getNodeSizeHumanFormat(), colors.fg.lightgrey)
     for child in rootNode.children:
-        output=getDirectoryTree(child, maxDepth-1, tabCount+1, onlyDir=onlyDir, extensions=extensions, search=search)
+        output=getDirectoryTree(child, maxDepth-1, tabCount+1, onlyDir=onlyDir, extensions=extensions, search=search, getSize=getSize)
         if output != None or output.strip() != "":
             finalOutput+=(output)
     return finalOutput
@@ -135,9 +171,10 @@ Following parameters affect the output of this function:
     '''
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--dir", help="Base directory location",dest="path",action="store",required=True)
-    parser.add_argument("-m", "--max-depth", help="Maximum depth to go from base directory",dest="maxDepth",action="store", default=5,required=False)
+    parser.add_argument("-m", "--max-depth", help="Maximum depth to go from base directory",dest="maxDepth",action="store", default=999,required=False)
     parser.add_argument("-i", "--image", help="To take image of output",dest="image", default=False, action="store",required=False)
     parser.add_argument("--only-dir", help="To print only directories in output",dest="onlyDir",action="store", type=strToBool, default=False, required=False)
+    parser.add_argument("--get-size", help="To print size directories in output",dest="getSize",action="store", type=strToBool, default=False, required=False)
     parser.add_argument("-e", "--extensions", help="To print only files with given output",dest="extensions", default=None, nargs="*", action="store",required=False)
     parser.add_argument("-s", "--search", help="To search a given file",dest="search", default=None, action="store",required=False)
     args = parser.parse_args()
@@ -159,7 +196,7 @@ def strToBool(value):
         return False
     elif value.lower() in {'true', 't', '1', 'yes', 'y'}:
         return True
-    raise ValueError(f'{value} is not a valid boolean value')
+    raise ValueError('{value} is not a valid boolean value')
 
 
 rootDir="D:\\video_lecs_os"
@@ -170,7 +207,9 @@ maxDepth=int(args.maxDepth)
 onlyDir=args.onlyDir
 extensions=args.extensions
 search=args.search
+getSize=args.getSize
 rootNode=Node(rootDir)
 createDirectoryTree(rootNode, maxDepth=maxDepth)
-outputTree=getDirectoryTree(rootNode, onlyDir=onlyDir, extensions=extensions, search=search)
+rootNode.setNodeSize()
+outputTree=getDirectoryTree(rootNode, onlyDir=onlyDir, extensions=extensions, search=search, getSize=getSize)
 print(outputTree)
