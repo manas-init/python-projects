@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import time
+import errno
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -150,9 +151,9 @@ def loginSelenium(driver, username, password):
     password_feild.send_keys(password)
 
     login = driver.find_element_by_xpath('//*[@id="content"]/div/div/div[2]/div[2]/div/div/div[2]/div/div/div[2]/div[1]/form/div[4]/button/div/span')
-    print(login)
+    #print(login)
     login.click()
-    print("login done")
+    print("login successful")
     time.sleep(4)
 
 
@@ -190,13 +191,19 @@ def printLines(my_code, lines_already_printed, final_string_list):
     return line_printed
 
 
-def getSubmittedCode(driver):
+def getSubmittedCode(driver, file_name, challange_class):
     final_string = ""
     prev_count = 0
     counts = 0
     final_string_list = []
     try:
         vertical_scrollbar = driver.find_element_by_class_name("CodeMirror-vscrollbar")
+        breadcrumb_items = driver.find_elements_by_class_name("breadcrumb-item-text")
+        challange_class.clear()
+        for i in breadcrumb_items:
+            challange_class.append(i.text)
+        if checkCodeAlreadyPresent(challange_class[:-1], file_name) == True:
+            return None
         if vertical_scrollbar.is_displayed() == False:
             raise NoSuchElementException
         for attempts in range(0, 10):
@@ -220,11 +227,14 @@ def getSubmittedCode(driver):
     return final_string
 
 
-def getSubmissionForUrl(driver, url):
+def getSubmissionForUrl(driver, file_name, url):
     navigateToSubmissionPage(driver, url)
-    code_string = getSubmittedCode(driver)
+    challange_class = []
+    code_string = getSubmittedCode(driver, file_name, challange_class)
     #print("\n\n\n\nFinal string is \n{}".format(code_string))
-    return code_string
+    if code_string == None:
+        return ()
+    return challange_class[:-1], code_string
 
 
 def createSubmissionUrl(challange_name, challange_id):
@@ -238,6 +248,14 @@ def removeInvalidCharacters(unfiltered_string):
             unfiltered_string = unfiltered_string.replace(char, "")
     return unfiltered_string
 
+
+def checkCodeAlreadyPresent(submission_class, file_name):
+    submission_class = ("/").join(submission_class)
+    file_path = "submissions/{}/{}".format(submission_class, file_name)
+    if os.path.isfile(file_path):
+        print("File present : {}".format(file_path))
+        return True
+    return False
 
 if __name__ == "__main__":
     config = readJson("config.json")
@@ -260,19 +278,30 @@ if __name__ == "__main__":
     for submission in accepted_submissions_dict:
         file_name = accepted_submissions_dict[submission]["challenge_name"]
         file_name = removeInvalidCharacters(file_name)
-        file_path = "submissions/{}.cpp".format(file_name)
-        if os.path.isfile(file_path):
-            continue
         try:
             sub_url = createSubmissionUrl(accepted_submissions_dict[submission]["challenge_slug"], accepted_submissions_dict[submission]["id"])
-            print("Starting : {}".format(sub_url))
-            submitted_string = getSubmissionForUrl(driver, sub_url)
+            print("\nStarting : {}".format(sub_url))
+            submission_tuple = getSubmissionForUrl(driver, file_name+".cpp", sub_url)
+            if len(submission_tuple) != 2:
+                print("Ended : {}".format(sub_url))
+                continue
+            submission_class, submitted_string = submission_tuple
+            submission_class = ("/").join(submission_class)
+            file_path = "submissions/{}/{}.cpp".format(submission_class, file_name)
+            if not os.path.exists(os.path.dirname(file_path)):
+                try:
+                    os.makedirs(os.path.dirname(file_path))
+                except OSError as exc: # Guard against race condition
+                    if exc.errno != errno.EEXIST:
+                        raise
             writeToFile(file_path, submitted_string)
+            print("File created : {}".format(file_path))
             print("Ended : {}".format(sub_url))
             #break
         except:
             print("Failure when trying for {}".format(accepted_submissions_dict[submission]["challenge_name"]))
             print("{} : {} : {}".format(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+        #x = input("Press Enter to continue")
     driver.quit()
     #text = driver.page_source
     #writeToFile('page_code_text.txt', text.encode('utf-8').decode('ascii', 'ignore'))
