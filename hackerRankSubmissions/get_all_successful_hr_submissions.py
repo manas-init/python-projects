@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 import time
@@ -7,8 +8,10 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+
 
 
 def writeToFile(filename, text):
@@ -188,35 +191,53 @@ def printLines(my_code, lines_already_printed, final_string_list):
 
 
 def getSubmittedCode(driver):
-    vertical_scrollbar = driver.find_element_by_class_name("CodeMirror-vscrollbar")
-
+    final_string = ""
     prev_count = 0
     counts = 0
     final_string_list = []
-    for attempts in range(0, 10):
+    try:
+        vertical_scrollbar = driver.find_element_by_class_name("CodeMirror-vscrollbar")
+        if vertical_scrollbar.is_displayed() == False:
+            raise NoSuchElementException
+        for attempts in range(0, 10):
+            my_code = driver.find_elements_by_class_name("CodeMirror-lines")
+            #print("attemps number {}".format(attempts))
+            prev_count = counts
+            counts = printLines(my_code, prev_count, final_string_list)
+            if prev_count == counts:
+                break
+            #print("prev_count : {}\ncounts : {}".format(prev_count, counts))
+            for count in range(0, 10):
+                vertical_scrollbar.send_keys(Keys.ARROW_DOWN)
+                time.sleep(1)
+        final_string = ("\n").join(final_string_list)
+    except NoSuchElementException:
         my_code = driver.find_elements_by_class_name("CodeMirror-lines")
-        #print("attemps number {}".format(attempts))
-        prev_count = counts
-        counts = printLines(my_code, prev_count, final_string_list)
-        if prev_count == counts:
-            break
-        #print("prev_count : {}\ncounts : {}".format(prev_count, counts))
-        for count in range(0, 10):
-            vertical_scrollbar.send_keys(Keys.ARROW_DOWN)
-            time.sleep(1)
-    finalString = ("\n").join(final_string_list)
-    return finalString
+        counts = printLines(my_code, 0, final_string_list)
+        final_string = ("\n").join(final_string_list)
+    except:
+        print("Error in function getSubmittedCode\n{} : {} : {}".format(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+    return final_string
 
 
 def getSubmissionForUrl(driver, url):
     navigateToSubmissionPage(driver, url)
-    code_String = getSubmittedCode(driver)
+    code_string = getSubmittedCode(driver)
     #print("\n\n\n\nFinal string is \n{}".format(code_string))
     return code_string
 
 
 def createSubmissionUrl(challange_name, challange_id):
     return "https://www.hackerrank.com/challenges/{}/submissions/code/{}".format(challange_name, challange_id)
+
+
+def removeInvalidCharacters(unfiltered_string):
+    invalid_chars = ["<", ">", ":", "\"", "/", "\\", "|", "?", "*"]
+    for char in unfiltered_string:
+        if char in invalid_chars:
+            unfiltered_string = unfiltered_string.replace(char, "")
+    return unfiltered_string
+
 
 if __name__ == "__main__":
     username = ""
@@ -227,17 +248,31 @@ if __name__ == "__main__":
     writeToFile(submission_metadata_file, json.dumps(accepted_submissions_dict, indent=4))
     readJson(submission_metadata_file)
     
+
     accepted_submissions_dict=readJson("my_subs_metadata.json")
     PATH = "C:\\Users\\manasm\\Downloads\\chromedriver_win32\\chromedriver.exe"
     driver = webdriver.Chrome(PATH)
     loginSelenium(driver, username, password)
     sub_url = createSubmissionUrl("stockmax", "183693820")
+    if not os.path.exists("submissions"):
+        os.makedirs("submissions")
     for submission in accepted_submissions_dict:
-        sub_url = createSubmissionUrl(accepted_submissions_dict[submission]["challenge_slug"], accepted_submissions_dict[submission]["id"])
-        print("Starting : {}".format(sub_url))
-        submitted_string = getSubmissionForUrl(driver, sub_url)
-        print("Ended : {}".format(sub_url))
-        #break
+        file_name = accepted_submissions_dict[submission]["challenge_name"]
+        file_name = removeInvalidCharacters(file_name)
+        file_path = "submissions/{}.cpp".format(file_name)
+        if os.path.isfile(file_path):
+            continue
+        try:
+            sub_url = createSubmissionUrl(accepted_submissions_dict[submission]["challenge_slug"], accepted_submissions_dict[submission]["id"])
+            print("Starting : {}".format(sub_url))
+            submitted_string = getSubmissionForUrl(driver, sub_url)
+            writeToFile(file_path, submitted_string)
+            print("Ended : {}".format(sub_url))
+            #break
+        except:
+            print("Failure when trying for {}".format(accepted_submissions_dict[submission]["challenge_name"]))
+            print("{} : {} : {}".format(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+        x = input("Press Enter to continue")
     driver.quit()
     #text = driver.page_source
     #writeToFile('tannu.txt', text.encode('utf-8').decode('ascii', 'ignore'))
