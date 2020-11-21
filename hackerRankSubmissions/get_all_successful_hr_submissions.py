@@ -240,8 +240,9 @@ def removeInvalidCharacters(unfiltered_string):
 
 
 if __name__ == "__main__":
-    username = ""
-    password = ""
+    config = readJson("config.json")
+    username = config["username"]
+    password = config["password"]
     accepted_submissions_dict = getSubmissionsMetadata(username, password)
     #print(json.dumps(accepted_submissions_dict, indent=4))
     submission_metadata_file = "my_subs_metadata.json"
@@ -250,7 +251,7 @@ if __name__ == "__main__":
     
 
     accepted_submissions_dict=readJson("my_subs_metadata.json")
-    PATH = "C:\\Users\\manasm\\Downloads\\chromedriver_win32\\chromedriver.exe"
+    PATH = config["path_to_chromedriver"]
     driver = webdriver.Chrome(PATH)
     loginSelenium(driver, username, password)
     sub_url = createSubmissionUrl("stockmax", "183693820")
@@ -272,5 +273,6 @@ if __name__ == "__main__":
         except:
             print("Failure when trying for {}".format(accepted_submissions_dict[submission]["challenge_name"]))
             print("{} : {} : {}".format(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
-        x = input("Press Enter to continue")
     driver.quit()
+    #text = driver.page_source
+    #writeToFile('page_code_text.txt', text.encode('utf-8').decode('ascii', 'ignore'))
