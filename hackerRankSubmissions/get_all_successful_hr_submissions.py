@@ -274,5 +274,3 @@ if __name__ == "__main__":
             print("{} : {} : {}".format(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
         x = input("Press Enter to continue")
     driver.quit()
-    #text = driver.page_source
-    #writeToFile('tannu.txt', text.encode('utf-8').decode('ascii', 'ignore'))
