@@ -1,10 +1,10 @@
 # Downloading hacker rank submissions
-This is a python project to download all the accepted submissions by a user on hacker rank. It was created to that people can save all their accepted solutions locally in order to better track their progress or keep them as reference.
+This is a python project to download all the accepted submissions by a user on hacker rank. It was created so that people can save all their accepted solutions locally in order to better track their progress or keep them as reference.
 <br><br>
 ## Getting started
 This script will create the a folder named "submissions" inside the script directory.<br>
-According to the category of question new folders will be created inside submission folder. Ex: submissions/Practice/Algorithms/Dynamic Programming/Stock Maximize.cpp<br>
-All the accepted solutions will be saved into respective folder.<br><br>
+According to the category of question nested folders will be created inside submission folder. Ex: submissions/Practice/Algorithms/Dynamic Programming/Stock Maximize.cpp<br>
+All the accepted solutions will be saved into their respective folder.<br><br>
 ## Prerequisistes
 - Python 3.7.9
 - Python sub-dependencies
