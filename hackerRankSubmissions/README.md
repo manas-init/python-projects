@@ -24,6 +24,10 @@ All the accepted solutions will be saved into their respective folder.<br><br>
   - check chrome version
   - Download chrome driver for same version using link https://chromedriver.chromium.org/downloads
 <br><br>
+## How to run
+Simply just call the python script (no arguments needed :stuck_out_tongue_closed_eyes:)<br>
+`python get_all_successful_hr_submissions.py`
+<br><br>
 ## Output of script
 For each accepted solution
 <br>*Sample output*<br>
