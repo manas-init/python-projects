@@ -258,10 +258,12 @@ def checkCodeAlreadyPresent(submission_class, file_name):
     return False
 
 
-def printSummary(total, failed, failure_string):
+def printSummary(total, new_subs, failed, failure_string):
+    success_count = total-failed
     print("\n\n{0}{1}Summary of execution{1}{0}".format("=" * 40, " " * 10))
     print("Total Submissions Found : {}".format(total))
-    print("Successfully traversed : {}".format(total-failed))
+    print("Successfully traversed : {}".format(success_count))
+    print("\tnew submissions : {}\n\told submissions : {}".format(new_subs, success_count - new_subs))
     print("Falied count : {}".format(failed))
     if failed != 0:
         print(failure_string)
@@ -286,6 +288,7 @@ if __name__ == "__main__":
     if not os.path.exists("submissions"):
         os.makedirs("submissions")
     failed_count = 0
+    new_submission_count = 0
     failure_string = ""
     for submission in accepted_submissions_dict:
         file_name = accepted_submissions_dict[submission]["challenge_name"]
@@ -309,6 +312,7 @@ if __name__ == "__main__":
                         raise
             writeToFile(file_path, submitted_string)
             print("File created : {}".format(file_path))
+            new_submission_count += 1
             print("Ended : {}".format(sub_url))
             #break
         except:
@@ -319,6 +323,6 @@ if __name__ == "__main__":
             print("{} : {} : {}".format(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
         #x = input("Press Enter to continue")
     driver.quit()
-    printSummary(len(accepted_submissions_dict), failed_count, failure_string)    
+    printSummary(len(accepted_submissions_dict), new_submission_count, failed_count, failure_string)    
     #text = driver.page_source
     #writeToFile('page_code_text.txt', text.encode('utf-8').decode('ascii', 'ignore'))
