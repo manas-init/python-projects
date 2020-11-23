@@ -268,11 +268,11 @@ if __name__ == "__main__":
     readJson(submission_metadata_file)
     
 
-    accepted_submissions_dict=readJson("my_subs_metadata.json")
+    accepted_submissions_dict = readJson("my_subs_metadata.json")
+    file_format_dict = readJson("lang_extension.json")
     PATH = config["path_to_chromedriver"]
     driver = webdriver.Chrome(PATH)
     loginSelenium(driver, username, password)
-    sub_url = createSubmissionUrl("stockmax", "183693820")
     if not os.path.exists("submissions"):
         os.makedirs("submissions")
     for submission in accepted_submissions_dict:
@@ -281,7 +281,8 @@ if __name__ == "__main__":
         try:
             sub_url = createSubmissionUrl(accepted_submissions_dict[submission]["challenge_slug"], accepted_submissions_dict[submission]["id"])
             print("\nStarting : {}".format(sub_url))
-            submission_tuple = getSubmissionForUrl(driver, file_name+".cpp", sub_url)
+            file_format = file_format_dict.get(accepted_submissions_dict[submission]["language"])
+            submission_tuple = getSubmissionForUrl(driver, file_name+"."+file_format, sub_url)
             if len(submission_tuple) != 2:
                 print("Ended : {}".format(sub_url))
                 continue
