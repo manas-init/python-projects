@@ -257,6 +257,16 @@ def checkCodeAlreadyPresent(submission_class, file_name):
         return True
     return False
 
+
+def printSummary(total, failed, failure_string):
+    print("\n\n{0}{1}Summary of execution{1}{0}".format("=" * 40, " " * 10))
+    print("Total Submissions Found : {}".format(total))
+    print("Successfully traversed : {}".format(total-failed))
+    print("Falied count : {}".format(failed))
+    if failed != 0:
+        print(failure_string)
+    return
+
 if __name__ == "__main__":
     config = readJson("config.json")
     username = config["username"]
@@ -275,6 +285,8 @@ if __name__ == "__main__":
     loginSelenium(driver, username, password)
     if not os.path.exists("submissions"):
         os.makedirs("submissions")
+    failed_count = 0
+    failure_string = ""
     for submission in accepted_submissions_dict:
         file_name = accepted_submissions_dict[submission]["challenge_name"]
         file_name = removeInvalidCharacters(file_name)
@@ -300,9 +312,13 @@ if __name__ == "__main__":
             print("Ended : {}".format(sub_url))
             #break
         except:
-            print("Failure when trying for {}".format(accepted_submissions_dict[submission]["challenge_name"]))
+            failed_count += 1
+            failed_string = "Failure when trying for \"{}\"".format(accepted_submissions_dict[submission]["challenge_name"])
+            failure_string += ("\n" + failed_string)
+            print(failed_string)
             print("{} : {} : {}".format(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
         #x = input("Press Enter to continue")
     driver.quit()
+    printSummary(len(accepted_submissions_dict), failed_count, failure_string)    
     #text = driver.page_source
     #writeToFile('page_code_text.txt', text.encode('utf-8').decode('ascii', 'ignore'))
