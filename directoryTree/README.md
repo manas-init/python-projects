@@ -22,10 +22,10 @@ Call the python script with combination of following arguments <br>
 
 `-d | --dir <path of base directory>` required. The path from which the to explore the directory structure<br>
 `-m | --max-depth <max-depth>` optional, default=999. The max-depth upto which we need to search from base-directory<br>
-`--only-dir true/false`  optional, default=False. It tells whether to print only directories or print both directories and files in the output<br>
+`--only-dir`  optional. It tells whether to print only directories or print both directories and files in the output<br>
 `-e | --extensions <extensions>` optional. It tells whether to print files of any particular extension<br>
 `-s | --search <file-name>` optional. Prints the given filename in yellow colour if the file is found, no other file is printed<br>
-`--no-colour true/false` optional, default=False. It prints the output in white colour only<br>
+`--no-colour` optional. It prints the output in white colour only<br>
 `-h | --help` optional. It prints the list of arguments that script accepts and their usage.
 <br><br>
 ## Licence
