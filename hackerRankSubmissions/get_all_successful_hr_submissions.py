@@ -15,6 +15,31 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 
 
+# Python program\to print
+# colored text and background
+class colors:
+    #to make ansci colour coding work even in windows
+    from platform import system
+    if "win" in system().lower(): #works for Win7, 8, 10 ...
+        from ctypes import windll
+        k=windll.kernel32
+        k.SetConsoleMode(k.GetStdHandle(-11),7)
+    black='\033[30m'
+    red='\033[31m'
+    green='\033[32m'
+    orange='\033[33m'
+    blue='\033[34m'
+    purple='\033[35m'
+    cyan='\033[36m'
+    lightgrey='\033[37m'
+    darkgrey='\033[90m'
+    lightred='\033[91m'
+    lightgreen='\033[92m'
+    yellow='\033[93m'
+    lightblue='\033[94m'
+    pink='\033[95m'
+    lightcyan='\033[96m'
+
 def writeToFile(filename, text):
     with open(filename, 'w') as f:
         f.write(text)
@@ -153,7 +178,7 @@ def loginSelenium(driver, username, password):
     login = driver.find_element_by_xpath('//*[@id="content"]/div/div/div[2]/div[2]/div/div/div[2]/div/div/div[2]/div[1]/form/div[4]/button/div/span')
     #print(login)
     login.click()
-    print("login successful")
+    print("{}login successful{}".format(colors.lightcyan, colors.lightgrey))
     time.sleep(4)
 
 
@@ -161,7 +186,7 @@ def navigateToSubmissionPage(driver, url):
     driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 't')
     driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.TAB)
     driver.get(url)
-    print("navigated to submissions page")
+    print("{}navigated to submissions page{}".format(colors.pink, colors.lightgrey))
     time.sleep(2)
 
 
@@ -253,18 +278,18 @@ def checkCodeAlreadyPresent(submission_class, file_name):
     submission_class = ("/").join(submission_class)
     file_path = "submissions/{}/{}".format(submission_class, file_name)
     if os.path.isfile(file_path):
-        print("File present : {}".format(file_path))
+        print("{}File present{} : {}".format(colors.orange, colors.lightgrey, file_path))
         return True
     return False
 
 
 def printSummary(total, new_subs, failed, failure_string):
     success_count = total-failed
-    print("\n\n{0}{1}Summary of execution{1}{0}".format("=" * 40, " " * 10))
-    print("Total Submissions Found : {}".format(total))
-    print("Successfully traversed : {}".format(success_count))
-    print("\tnew submissions : {}\n\told submissions : {}".format(new_subs, success_count - new_subs))
-    print("Falied count : {}".format(failed))
+    print("\n\n{0}{1}{2}Summary of execution{2}{1}{3}".format(colors.yellow, "=" * 40, " " * 10, colors.lightgrey))
+    print("{}Total Submissions Found{} : {}".format(colors.lightblue, colors.lightgrey, total))
+    print("{}Successfully traversed{} : {}".format(colors.lightgreen, colors.lightgrey, success_count))
+    print("\t{0}new submissions{1} : {2}\n\t{0}old submissions{1} : {3}".format(colors.green, colors.lightgrey, new_subs, success_count - new_subs))
+    print("{}Falied count{} : {}".format(colors.lightred, colors.lightgrey, failed))
     if failed != 0:
         print(failure_string)
     return
@@ -295,11 +320,11 @@ if __name__ == "__main__":
         file_name = removeInvalidCharacters(file_name)
         try:
             sub_url = createSubmissionUrl(accepted_submissions_dict[submission]["challenge_slug"], accepted_submissions_dict[submission]["id"])
-            print("\nStarting : {}".format(sub_url))
+            print("\n{}Starting{} : {}".format(colors.cyan, colors.lightgrey, sub_url))
             file_format = file_format_dict.get(accepted_submissions_dict[submission]["language"])
             submission_tuple = getSubmissionForUrl(driver, file_name+"."+file_format, sub_url)
             if len(submission_tuple) != 2:
-                print("Ended : {}".format(sub_url))
+                print("{}Ended{} : {}".format(colors.cyan, colors.lightgrey, sub_url))
                 continue
             submission_class, submitted_string = submission_tuple
             submission_class = ("/").join(submission_class)
@@ -311,13 +336,13 @@ if __name__ == "__main__":
                     if exc.errno != errno.EEXIST:
                         raise
             writeToFile(file_path, submitted_string)
-            print("File created : {}".format(file_path))
+            print("{}File created{} : {}".format(colors.purple, colors.lightgrey, file_path))
             new_submission_count += 1
-            print("Ended : {}".format(sub_url))
+            print("{}Ended{} : {}".format(colors.cyan, colors.lightgrey, sub_url))
             #break
         except:
             failed_count += 1
-            failed_string = "Failure when trying for \"{}\"".format(accepted_submissions_dict[submission]["challenge_name"])
+            failed_string = "{}Failure{} when trying for \"{}\"".format(colors.red, colors.lightgrey, accepted_submissions_dict[submission]["challenge_name"])
             failure_string += ("\n" + failed_string)
             print(failed_string)
             print("{} : {} : {}".format(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
