@@ -173,7 +173,9 @@ Following parameters affect the output of this function:
     parser.add_argument("-d", "--dir", help="Base directory location",dest="path",action="store",required=True)
     parser.add_argument("-m", "--max-depth", help="Maximum depth to go from base directory",dest="maxDepth",action="store", default=999,required=False)
     parser.add_argument("-i", "--image", help="To take image of output",dest="image", default=False, action="store",required=False)
-    parser.add_argument("--only-dir", help="To print only directories in output",dest="onlyDir",action="store", type=strToBool, default=False, required=False)
+    parser.add_argument("--only-dir", help="To print only directories in output",dest="onlyDir",action="store_true", default=False, required=False)
+    #parser.add_argument("--only-dir", help="To print only directories in output",dest="onlyDir",action="store", type=strToBool, default=False, required=False)
+    parser.add_argument("--no-colour", help="To print only directories in output",dest="noColour",action="store_true", default=False, required=False)
     parser.add_argument("--get-size", help="To print size directories in output",dest="getSize",action="store", type=strToBool, default=False, required=False)
     parser.add_argument("-e", "--extensions", help="To print only files with given output",dest="extensions", default=None, nargs="*", action="store",required=False)
     parser.add_argument("-s", "--search", help="To search a given file",dest="search", default=None, action="store",required=False)
@@ -208,6 +210,11 @@ onlyDir=args.onlyDir
 extensions=args.extensions
 search=args.search
 getSize=args.getSize
+if args.noColour:
+    members = [attr for attr in dir(colors.fg) if not callable(getattr(colors.fg, attr)) and not attr.startswith("__")]
+    for member in members:
+        a="colors.fg.{}".format(member)
+        exec(a+"=''")
 rootNode=Node(rootDir)
 createDirectoryTree(rootNode, maxDepth=maxDepth)
 rootNode.setNodeSize()
