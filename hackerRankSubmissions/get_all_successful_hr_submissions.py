@@ -175,7 +175,8 @@ def loginSelenium(driver, username, password):
     password_feild.clear()
     password_feild.send_keys(password)
 
-    login = driver.find_element_by_xpath('//*[@id="content"]/div/div/div[2]/div[2]/div/div/div[2]/div/div/div[2]/div[1]/form/div[4]/button/div/span')
+    #login = driver.find_element_by_xpath('//*[@id="content"]/div/div/div[2]/div[2]/div/div/div[2]/div/div/div[2]/div[1]/form/div[4]/button/div/span')
+    login = driver.find_element_by_xpath('//button[normalize-space()="Log In"]')
     #print(login)
     login.click()
     print("{}login successful{}".format(colors.lightcyan, colors.lightgrey))
@@ -241,7 +242,7 @@ def getSubmittedCode(driver, file_name, challange_class):
             #print("prev_count : {}\ncounts : {}".format(prev_count, counts))
             for count in range(0, 10):
                 vertical_scrollbar.send_keys(Keys.ARROW_DOWN)
-                time.sleep(1)
+                time.sleep(0.1)
         final_string = ("\n").join(final_string_list)
     except NoSuchElementException:
         my_code = driver.find_elements_by_class_name("CodeMirror-lines")
@@ -308,7 +309,7 @@ if __name__ == "__main__":
     accepted_submissions_dict = readJson("my_subs_metadata.json")
     file_format_dict = readJson("lang_extension.json")
     PATH = config["path_to_chromedriver"]
-    driver = webdriver.Chrome(PATH)
+    driver = webdriver.Chrome(executable_path=PATH)
     loginSelenium(driver, username, password)
     if not os.path.exists("submissions"):
         os.makedirs("submissions")
